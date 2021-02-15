@@ -1,81 +1,101 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+output: htle document
+keep_md: true
 ---
 
 ## Loading and preprocessing the data
 
-Cargamos el conjunto de datos con el sigueinte código:
+## Cargamos el conjunto de datos con el sigueinte código:
+```{r, echo = TRUE}
 actividades < read.csv("C:/Users/Usuario/Documents/R/NUEVO/datasciencecoursera/activity.csv")
 actividades$date <- as.POSIXct(actividades$date, "%Y-%m-%d")
 weekday <- weekdays(actividades$date)
 activity <- cbind(actividades,weekday)
 
 summary(activity)
+```
 
 Exploramos el conunto de datos
-
+```{r}
 dim(activity)
 names(activity)
 head(activity)
 str(activity)
+```
 
 ## What is mean total number of steps taken per day?
 
 #1.1¿Cuál es el número total de pasos realizados por día?
+```{r, echo = TRUE}
 pasos_totales <- with(activity, aggregate(steps, by = list(date), FUN = sum, na.rm = TRUE))
 names(pasos_totales) <- c("date", "steps")
 png("plot1.1.png")
 hist(pasos_totales$steps, main = "Total number of steps per day", xlab = "Total steps")
 dev.off()
-
+```
 #1.2Hallamos la media de pasos por día
 La media la hallamos mediante la función mean
+```{r, echo = TRUE}
 mean(pasos_totales$steps)
 mean = 9354.23
+```
 
 #1.3Hallamos la mediana
 La media la hallamos mediante la función median
+```{r, echo = TRUE}
 median = 10395
 median(pasos_totales$steps)
+```
+
 
 ## What is the average daily activity pattern?
+```{r, echo = TRUE}
 actividad_promedio <- aggregate(activity$steps, by = list(activity$interval), FUN = mean, na.rm = TRUE)
 names(actividad_promedio) <- c("interval", "mean")
-
+```
 2.1Patrón de actividad promedio
+```{r, echo = TRUE}
 png("plot2.1.png")
 plot(actividad_promedio$interval, actividad_promedio$mean, type = "l", xlab = "Interval", ylab = "Average number of steps", main = "Average number of steps per intervals")
 dev.off()
-
+```
 Usamos:
+```{r, echo = TRUE}
 actividad_promedio[which.max(actividad_promedio$mean), ]$ interval
 rta = 835
-
+```
 
 ## Imputing missing values
 Se usarán los valores medios para sustituir los valores faltantes en el conjunto de datos original.
 3.1 Primero calculamos el número total de valores faltantes.
+```{r, echo = TRUE}
 sum(is.na(activity$steps))
+```
 3.2 Usamos los valores medios como estrategia para cubrir los valores faltantes
+```{r, echo = TRUE}
 pasos_faltantes <- actividad_promedio$mean[match(activity$interval, actividad_promedio$interval)]
+```
 3.3 Creamos el nuevo dataset igual al original pero con los datos faltantes
+```{r, echo = TRUE}
 actividad_faltante <- transform(activity, steps =ifelse(is.na(activity$steps), yes = pasos_faltantes, no = activity$steps))
 totalpasos_faltantes <- aggregate(steps ~ date, actividad_faltante, sum)
 names(totalpasos_faltantes) <- c("Date", "Daily_steps")
+```
 3.4 Realizamos un histograma del del número total de pasos realizados cada día y calcule e informe la media y la mediana del número total de pasos realizados por día.
+```{r, echo = TRUE}
 png("plot3.4.png")
 hist(totalpasos_faltantes$Daily_steps, xlab = "Total steps per day", main = "Total number of steps per day")
 dev.off()  
+```
 #Obtenemos la media y la mediana
+```{r, echo = TRUE}  
   mean(totalpasos_faltantes$Daily_steps)
   median(totalpasos_faltantes$Daily_steps)  
-  
+```  
 ## Are there differences in activity patterns between weekdays and weekends?
 4.1 Creamos una variable factor para los días entre semana y los días fuera de semana. usamos los datos originales "activity", de esta forma podemos diferenciar los días entre semana de los de fin de semana.
-
+```{r, echo = TRUE}
 activity$date <- as.Date(strptime(activity$date, format = "%Y-%m-%d"))
 activity$datetype <- sapply(activity$date, function(x) {
       if (weekdays(x) == "sábado" | weekdays(x) == "domingo")
@@ -83,9 +103,9 @@ activity$datetype <- sapply(activity$date, function(x) {
       {y <- "Weekday"}
       y
       })  
-      
+```
 4.2 Acto seguido trazamos el plot del número medio de pasos realizados, promediados en todos los días de lunes a viernes o días de fin de semana.
-
+```{r, echo = TRUE}
 actividad_fecha <- aggregate(steps~interval + datetype, activity, mean, na.rm = TRUE)
 library(ggplot2)
 trama <- ggplot(actividad_fecha, aes(x = interval, y = steps, color = datetype)) + 
@@ -93,4 +113,4 @@ trama <- ggplot(actividad_fecha, aes(x = interval, y = steps, color = datetype))
   labs(title = "Average daily steps by type of date", x = "Interval", y = "Average number of steps") + 
   facet_wrap(~datetype, ncol = 1, nrow = 2) 
 print(trama)
-
+```
