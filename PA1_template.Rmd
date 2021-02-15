@@ -5,21 +5,70 @@ output:
     keep_md: true
 ---
 
-
 ## Loading and preprocessing the data
 
+Cargamos el conjunto de datos con el sigueinte código:
+actividades < read.csv("C:/Users/Usuario/Documents/R/NUEVO/datasciencecoursera/activity.csv")
+
+
+Exploramos el conunto de datos
+
+dim(actividades)
+names(actividades)
+head(actividades)
+str(actividades)
+#Número de datos faltantes
+sum(is.na(actividades$steps))/dim(actividades)[[1]]
 
 
 ## What is mean total number of steps taken per day?
 
+#1.¿Cuál es el número total de pasos realizados por día?
+pasos_totales <- with(activity, aggregate(steps, by = list(date), FUN = sum, na.rm = TRUE))
+names(pasos_totales) <- c("date", "steps")
+hist(pasos_totales$steps, main = "Total number of steps per day", xlab = "Total steps")
 
+#1.1Hallamos la media de pasos por día
+La media la hallamos mediante la función mean
+mean(pasos_totales$steps)
+mean = 9354.23
+
+#1.2Hallamos la mediana
+La media la hallamos mediante la función median
+median = 10395
+median(pasos_totales$steps)
 
 ## What is the average daily activity pattern?
-
+Usamos:
+actividad_promedio[which.max(actividad_promedio$mean), ]$ interval
+rta = 835
 
 
 ## Imputing missing values
-
-
+Se usarán los valores medios para sustituir los valores faltantes en el conjunto de datos original.
+- Primero calculamos el número total de valores faltantes.
+sum(is.na(activity$steps))
+- Usamos los valores medios como estrategia para cubrir los valores faltantes
+pasos_faltantes <- actividad_promedio$mean[match(activity$interval, actividad_promedio$interval)]
 
 ## Are there differences in activity patterns between weekdays and weekends?
+1. Creamos una variable factor para los días entre semana y los días fuera de semana. usamos los datos originales "activity", de esta forma podemos diferenciar los días entre semana de los de fin de semana.
+
+activity$date <- as.Date(strptime(activity$date, format = "%Y-%m-%d"))
+activity$datetype <- sapply(activity$date, function(x) {
+      if (weekdays(x) == "sábado" | weekdays(x) == "domingo")
+      {y <- "Weekend"} else 
+      {y <- "Weekday"}
+      y
+      })  
+      
+2.Acto seguido trazamos el plot del número medio de pasos realizados, promediados en todos los días de lunes a viernes o días de fin de semana.
+
+actividad_fecha <- aggregate(steps~interval + datetype, activity, mean, na.rm = TRUE)
+library(ggplot2)
+trama <- ggplot(actividad_fecha, aes(x = interval, y = steps, color = datetype)) + 
+  geom_line() + 
+  labs(title = "Average daily steps by type of date", x = "Interval", y = "Average number of steps") + 
+  facet_wrap(~datetype, ncol = 1, nrow = 2) 
+print(trama)
+
